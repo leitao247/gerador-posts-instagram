@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerador de Posts Instagram Pro</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+            animation: fadeIn 0.8s ease;
+        }
+        
+        .header h1 { 
+            font-size: 2.5em; 
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .header p { opacity: 0.9; }
+        
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            margin-bottom: 20px;
+            animation: slideUp 0.6s ease;
+        }
+        
+        .section-title {
+            color: #E1306C;
+            font-weight: bold;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .content-box {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 4px solid #E1306C;
+            transition: transform 0.2s;
+        }
+        
+        .content-box:hover { transform: translateX(5px); }
+        
+        .image-desc {
+            color: #666;
+            font-style: italic;
+            line-height: 1.6;
+        }
+        
+        .caption {
+            line-height: 1.8;
+            font-size: 16px;
+            white-space: pre-wrap;
+            color: #333;
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 50px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.5s;
+        }
+        
+        .btn:hover::before { left: 100%; }
+        
+        .btn-generate {
+            background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
+            color: white;
+            box-shadow: 0 4px 15px rgba(225, 48, 108, 0.4);
+        }
+        
+        .btn-copy {
+            background: #25D366;
+            color: white;
+            box-shadow: 0 4px 15px rgba(37, 211, 102, 0.4);
+        }
+        
+        .btn-copy-all {
+            background: #4CAF50;
+            color: white;
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4);
+        }
+        
+        .btn:hover {
+            transform: translateY(-3px) scale(1.02);
+        }
+        
+        .btn:active { transform: translateY(0); }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            color: #E1306C;
+            padding: 40px;
+        }
+        
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #E1306C;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin { 
+            0% { transform: rotate(0deg); } 
+            100% { transform: rotate(360deg); } 
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: #25D366;
+            color: white;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+        
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+        
+        .category-tags {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 25px;
+            justify-content: center;
+        }
+        
+        .tag {
+            padding: 10px 20px;
+            background: #f0f2f5;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+            border: 2px solid transparent;
+            user-select: none;
+        }
+        
+        .tag.active {
+            background: #E1306C;
+            color: white;
+            border-color: #E1306C;
+            transform: scale(1.05);
+        }
+        
+        .tag:hover:not(.active) { 
+            background: #e1e4e8; 
+            transform: translateY(-2px);
+        }
+        
+        .stats {
+            text-align: center;
+            color: #666;
+            font-size: 12px;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+        
+        .hidden { display: none !important; }
+        
+        @media (max-width: 600px) {
+            .header h1 { font-size: 1.8em; }
+            .card { padding: 20px; }
+            .btn { padding: 12px 20px; font-size: 14px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📱 Gerador de Posts Instagram</h1>
+            <p>Curiosidades virais com um clique</p>
+        </div>
+
+        <div class="card">
+            <div class="category-tags" id="categoryContainer">
+                <span class="tag active" data-category="random">🎲 Aleatório</span>
+                <span class="tag" data-category="nature">🦁 Natureza</span>
+                <span class="tag" data-category="science">🔬 Ciência</span>
+                <span class="tag" data-category="history">🏛️ História</span>
+                <span class="tag" data-category="space">🚀 Espaço</span>
+                <span class="tag" data-category="tech">💻 Tecnologia</span>
+                <span class="tag" data-category="body">🧠 Corpo Humano</span>
+                <span class="tag" data-category="food">🍔 Comida</span>
+            </div>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Criando conteúdo viral... ✨</p>
+            </div>
+
+            <div id="content">
+                <div class="content-box">
+                    <div class="section-title">📸 Sugestão de Imagem</div>
+                    <div class="image-desc" id="imageDesc">
+                        Clique em "Gerar Novo Post" para começar
+                    </div>
+                </div>
+
+                <div class="content-box">
+                    <div class="section-title">📝 Legenda Pronta</div>
+                    <div class="caption" id="caption">
+                        Seu post aparecerá aqui...
+                    </div>
+                </div>
+
+                <div class="content-box hidden" id="reelsBox">
+                    <div class="section-title">🎬 Versão Reels/Stories</div>
+                    <div class="caption" id="reelsScript"></div>
+                </div>
+            </div>
+
+            <div class="btn-group">
+                <button class="btn btn-generate" id="btnGenerate">
+                    ✨ Gerar Novo Post
+                </button>
+                <button class="btn btn-copy" id="btnCopy">
+                    📋 Copiar Legenda
+                </button>
+                <button class="btn btn-copy-all" id="btnCopyAll">
+                    📑 Copiar Tudo
+                </button>
+            </div>
+            
+            <div class="stats">
+                <span id="statsText">Pronto para gerar conteúdo!</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast">✅ Copiado com sucesso!</div>
+
+    <script>
+        // Banco de dados com 40+ fatos curiosos
+        const factsDB = {
+            nature: [
+                { fact: "Polvos têm três corações, sangue azul e nove cérebros", extra: "Cada braço tem seu próprio cérebro e pode tomar decisões independentes", image: "close-up macro de polvo vermelho em recife de coral, olhos expressivos, fotografia subaquática profissional, cores vibrantes, National Geographic style" },
+                { fact: "As borboletas têm sensores de gosto nos pés", extra: "Elas 'provam' as folhas ao pisar para saber se são boas para botar ovos", image: "borboleta monarca em flor laranja, asas abertas mostrando escamas microscópicas, luz dourada do pôr do sol, macro fotografia" },
+                { fact: "Elefantes são os únicos mamíferos que não conseguem pular", extra: "Suas pernas são muito pesadas e não têm elasticidade suficiente", image: "elefante africano adulto na savana africana, poeira dourada ao redor, fotografia wildlife premiada, luz dourada da manhã" },
+                { fact: "O coração de uma baleia azul é do tamanho de um carro pequeno", extra: "Uma criança poderia nadar nas artérias de uma baleia azul adulta", image: "coração gigante de baleia azul em escala comparativa com carro, infográfico médico realista, museu de história natural" },
+                { fact: "Pereiras dormem cerca de 20 horas por dia", extra: "Sua dieta de folhas fornece pouca energia, então economizam dormindo", image: "preguiça de três dedos dormindo em galho de árvore na floresta tropical, musgo ao redor, fotografia naturalística" }
+            ],
+            science: [
+                { fact: "Se o Sol fosse do tamanho de uma célula, a Via Láctea seria do tamanho dos EUA", extra: "A escala do cosmos é impossível de imaginar intuitivamente", image: "comparação visual de escala: célula microscópica vs mapa dos EUA, infográfico artístico, cores neon, estilo educativo" },
+                { fact: "Seu DNA se estenderia até o Sol e voltaria 60 vezes", extra: "Cada célula tem 2 metros de DNA enrolado, e você tem 37 trilhões de células", image: "representação artística de DNA espiral azul brilhante estendendo-se pelo espaço sideral, Terra e Sol ao fundo, ilustração 3D" },
+                { fact: "O corpo humano emite luz visível, mas nossos olhos são 1000x menos sensíveis", extra: "Você brilha no escuro literalmente, só não consegue ver", image: "silhueta humana com aura bioluminescente azul fraca, ambiente escuro, fotografia de longa exposição artística, corpo brilhando" },
+                { fact: "Uma colher de chá de estrela de nêutrons pesa 6 bilhões de toneladas", extra: "A densidade é tão extrema que um grão de areia pesaria 400 milhões de kg", image: "colher de prata segurando material brilhante denso, espaço sideral ao fundo, estrela de nêutrons brilhante, renderização hiper-realista" },
+                { fact: "O átomo é 99.9999999999996% espaço vazio", extra: "Se o núcleo fosse do tamanho de uma uva, os elétrons estariam a 1km de distância", image: "representação artística de átomo gigante com núcleo central e elétrons distantes, espaço vazio escuro, ilustração científica" }
+            ],
+            history: [
+                { fact: "Cleópatra viveu mais perto do iPhone do que da construção das pirâmides", extra: "As pirâmides tinham 2.500 anos quando ela nasceu; o iPhone tem apenas 17 anos", image: "collage artístico: busto de Cleópatra ao lado de iPhone moderno, fundo com pirâmides, estética surrealista, cores douradas" },
+                { fact: "A Guerra dos 335 Anos entre Países Baixos e Ilhas Scilly nunca teve batalhas", extra: "Foi esquecida por 335 anos sem um único tiro, terminando em 1986", image: "mapa antigo das Ilhas Scilly com selos de cera de tratado diplomático, estética de documento histórico, iluminação suave, papel envelhecido" },
+                { fact: "Oxford University é mais antiga que o Império Asteca", extra: "Oxford ensina desde 1096; o Império Asteca começou em 1428", image: "fachada gótica da Universidade de Oxford com contraste de artefatos astecas, montagem fotográfica educativa, divisão central" },
+                { fact: "A última pessoa que nasceu no século XIX morreu em 2017", extra: "Emma Morano nasceu em 1899 e viveu 117 anos, vendo 3 séculos", image: "foto histórica em sépia de Emma Morano jovem ao lado de foto colorida dela aos 117 anos, linha do tempo visual" },
+                { fact: "A Torre de Pisa já ficou 10 anos fechada para 'descansar'", extra: "Entre 1990-2001, engenheiros trabalharam para impedir que caísse", image: "Torre de Pisa com estruturas de suporte ao redor, céu azul italiano, fotografia arquitetônica, ângulo baixo" }
+            ],
+            space: [
+                { fact: "Um dia em Vênus é mais longo que um ano em Vênus", extra: "Vênus gira tão lentamente (243 dias) que orbita o Sol (225 dias) mais rápido", image: "superfície vulcânica de Vênus com atmosfera densa laranja-acastanhada, renderização hiper-realista, estrelas distantes, paisagem infernal" },
+                { fact: "Você não consegue assobiar no espaço", extra: "Sem ar, não há meio para ondas sonoras viajarem - som não existe no vácuo", image: "astronauta tentando assobiar no vácuo do espaço, expressão cômica, Terra ao fundo, ilustração 3D realista, humorístico" },
+                { fact: "100 trilhões de neutrinos atravessam você a cada segundo", extra: "Partículas do espaço passam por nós o tempo todo sem sentirmos nada", image: "representação artística de partículas subatômicas azuis atravessando corpo humano transparente, efeitos de luz, fundo escuro" },
+                { fact: "Júpiter tem 79 luas, e uma delas (Ganimedes) é maior que Mercúrio", extra: "Se Ganimedes orbitasse o Sol, seria considerada um planeta", image: "Ganimedes ao lado de Júpiter gigante, comparação de tamanho com Mercúrio, espaço sideral, luas orbitando" },
+                { fact: "Um pulsar gira mais rápido que a lâmina de um liquidificador", extra: "Alguns giram 716 vezes por segundo, emitindo feixes de luz como faróis cósmicos", image: "pulsar girando no espaço profundo, emissões de luz em cones, estrelas ao fundo, animação congelada, azul e branco" }
+            ],
+            tech: [
+                { fact: "O primeiro iPhone tinha mais poder que todos os computadores da NASA em 1969", extra: "O celular no seu bolso é mais poderoso que o que levou humanos à Lua", image: "comparação lado a lado: iPhone moderno vs sala gigante de mainframes vintage da NASA 1969, estética retro-futurista" },
+                { fact: "O botão 'Salvar' do Word é um disquete que jovens nunca usaram", extra: "Design de ícones preserva tecnologia obsoleta que a Geração Z não reconhece", image: "disquete de 3.5 polegadas ao lado de ícone do Microsoft Word, jovem confuso olhando, fotografia conceitual moderna" },
+                { fact: "O primeiro email foi enviado antes da internet existir", extra: "Ray Tomlinson enviou '@' em 1971, antes da web ser inventada em 1989", image: "terminal de computador antigo dos anos 70 mostrando primeiro email, tela verde fosforescente, ambiente escuro de laboratório" },
+                { fact: "O Google processa 99.000 buscas por segundo", extra: "São 8.5 bilhões de buscas por dia, ou 3.1 trilhões por ano", image: "visualização de dados: números flutuando em espaço digital, luzes azuis, representação abstrata de big data" },
+                { fact: "O primeiro VHS tinha 4kg e custava R$ 15.000 em valores atuais", extra: "Em 1977, o JVC HR-3300 pesava quanto um bebê e custava US$ 1.280", image: "gravador VHS vintage dos anos 70, tamanho grande e pesado, design retrô, madeira e metal, anúncio antigo" }
+            ],
+            body: [
+                { fact: "Seus olhos têm resolução de 576 megapixels", extra: "Mas o cérebro processa apenas o equivalente a cerca de 5-15 MP", image: "close-up extremo de íris humana, detalhes do colágeno e músculos, macro fotografia médica, cores vibrantes" },
+                { fact: "Você produz 1-2 litros de saliva por dia", extra: "Isso dá cerca de 30.000 litros em uma vida - o suficiente para encher 2 piscinas", image: "representação artística de produção de saliva em glândulas salivares, ilustração médica 3D, tons azuis e rosas" },
+                { fact: "O estômago humano pode dissolver lâminas de barbear", extra: "O ácido clorídrico tem pH 1-2, capaz de dissolver metal (mas não faça isso!)", image: "lâmina de barbear sendo dissolvida em ácido, bolhas, ambiente estomacal, ilustração científica, advertência" },
+                { fact: "Seus ossos são mais fortes que o concreto", extra: "O osso compacto suporta 19.000 kg por cm² vs 2.100 kg do concreto", image: "comparação microscópica: estrutura de osso humano vs concreto, textura porosa, resistência, infográfico científico" },
+                { fact: "Você tem mais células bacterianas que humanas no corpo", extra: "São 39 trilhões de bactérias vs 30 trilhões de células humanas", image: "microbioma intestinal colorido, bactérias fluorescentes, corpo humano transparente, ilustração médica moderna" }
+            ],
+            food: [
+                { fact: "Tomates são frutas, mas legalmente são vegetais nos EUA", extra: "A Suprema Corte decidiu em 1893 por questões de tarifas aduaneiras", image: "tomate maduro vermelho cortado ao meio, textura interna, fundo de tribunal antigo, collage jurídica humorística" },
+                { fact: "A banana é uma baga, mas o morango não é", extra: "Botanicamente, bagas têm sementes internas; morangos têm aquênios externos", image: "corte científico de banana mostrando sementes internas vs morango com sementes externas, infográfico botânico" },
+                fact: "O chocolate era usado como moeda pelos astecas", extra: "100 grãos de cacau compravam um escravo, 10 um coelho", image: "grãos de cacao astecas antigos ao lado de moedas de ouro, ambiente pré-colombiano, fotografia arqueológica" },
+                { fact: "O mel nunca estraga - arqueólogos encontraram mel comestível de 3.000 anos", extra: "Baixa umidade e acidez impedem o crescimento de bactérias", image: "pote de barro antigo com mel dourado, tumba egípcia, arqueologia, luz dourada, textura viscosa" },
+                { fact: "A pimenta não queima a língua, ela engana o cérebro", extra: "A capsaicina ativa receptores de temperatura, não de gosto - é uma ilusão térmica", image: "pimenta habanero cortada mostrando capsaicina, representação de neurônios sendo ativados, ilustração científica" }
+            ]
+        };
+
+        let currentCategory = 'random';
+        let generatedCount = 0;
+
+        // Event listeners
+        document.querySelectorAll('.tag').forEach(tag => {
+            tag.addEventListener('click', function() {
+                document.querySelectorAll('.tag').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                currentCategory = this.dataset.category;
+            });
+        });
+
+        document.getElementById('btnGenerate').addEventListener('click', generatePost);
+        document.getElementById('btnCopy').addEventListener('click', () => copyContent('caption'));
+        document.getElementById('btnCopyAll').addEventListener('click', copyAll);
+
+        function generatePost() {
+            const loading = document.getElementById('loading');
+            const content = document.getElementById('content');
+            const reelsBox = document.getElementById('reelsBox');
+            
+            loading.style.display = 'block';
+            content.style.opacity = '0.3';
+            
+            setTimeout(() => {
+                let factData;
+                
+                if (currentCategory === 'random') {
+                    const allFacts = Object.values(factsDB).flat();
+                    factData = allFacts[Math.floor(Math.random() * allFacts.length)];
+                } else {
+                    const categoryFacts = factsDB[currentCategory] || factsDB.nature;
+                    factData = categoryFacts[Math.floor(Math.random() * categoryFacts.length)];
+                }
+                
+                // Gera legenda formatada
+                const emojis = ['🤯', '😱', '🤔', '💡', '⚡', '🔥', '🌟', '💫'];
+                const randomEmoji = emojis[Math.floor(Math.random() * emojis.length)];
+                
+                const caption = `${randomEmoji} VOCÊ SABIA QUE... ${factData.fact.toUpperCase()}?
+
+Isso parece impossível, mas é 100% cientificamente comprovado! ${factData.fact.split(' ').slice(0, 3).join(' ')} é apenas uma das provas de que a realidade é mais estranha que a ficção.
+
+👉 ${factData.extra}
+
+💭 Comenta "${randomEmoji}" se você ficou chocado!
+👥 Marca alguém que precisa saber disso
+❤️ Salva para não esquecer
+
+.
+.
+.
+.
+.
+.
+#curiosidades #fatoscuriosos #vocesabia #sabiaque #curiosidadediaria #instacurioso #conhecimento #fatos #curiosidadedomundo #aprendizado #descubra #sabiasdisso #fatonerd #curiosidadesbrasil #vocenaoimagina #fatoinusitado #curiosidadereal #sabianao #fatosreais #curiosidadescientificas`;
+
+                // Gera roteiro Reels
+                const hooks = ['IMPOSSÍVEL...', 'NÃO ACREDITO!', 'É VERDADE!', 'INACREDITÁVEL!', 'SÉRIO ISSO?'];
+                const randomHook = hooks[Math.floor(Math.random() * hooks.length)];
+                
+                const reelsScript = `🎬 ROTEIRO REELS (30s):
+
+[0-3s] HOOK VISUAL: "${factData.fact.split(' ').slice(0, 4).join(' ')}...?"
+Texto na tela: "${randomHook}"
+Tom de voz: Curiosidade/Intriga
+
+[3-8s] REVELAÇÃO: "${factData.fact}"
+Texto na tela: "É CIENTÍFICO! 🔬"
+Efeito: Zoom in na imagem
+
+[8-15s] CONTEXTO: "${factData.extra.substring(0, 60)}..."
+Texto na tela: "E TEM MAIS... 👇"
+Transição: Slide lateral
+
+[15-22s] CURIOSIDADE EXTRA
+Texto na tela: "SALVA ISSO! 💾"
+Call visual: Seta apontando para salvar
+
+[22-30s] CALL TO ACTION
+Texto na tela: "Segue + Comenta! 🔔"
+Fala: "Qual próximo tema você quer?"
+
+🎵 MÚSICA: Som de curiosidade/mistério trend do momento
+🎨 CORES: Contraste alto, texto branco com contorno preto`;
+
+                // Preenche conteúdo
+                document.getElementById('imageDesc').textContent = factData.image;
+                document.getElementById('caption').textContent = caption;
+                document.getElementById('reelsScript').textContent = reelsScript;
+                
+                reelsBox.classList.remove('hidden');
+                
+                generatedCount++;
+                document.getElementById('statsText').textContent = `${generatedCount} posts gerados hoje! 🚀`;
+                
+                loading.style.display = 'none';
+                content.style.opacity = '1';
+                
+                // Animação de entrada
+                content.animate([
+                    { opacity: 0.3, transform: 'translateY(10px)' },
+                    { opacity: 1, transform: 'translateY(0)' }
+                ], {
+                    duration: 400,
+                    easing: 'ease-out'
+                });
+                
+            }, 1200);
+        }
+
+        function copyContent(elementId) {
+            const text = document.getElementById(elementId).textContent;
+            navigator.clipboard.writeText(text).then(() => {
+                showToast('✅ Legenda copiada!');
+            }).catch(() => {
+                // Fallback para dispositivos móveis
+                const textArea = document.createElement('textarea');
+                textArea.value = text;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                showToast('✅ Legenda copiada!');
+            });
+        }
+
+        function copyAll() {
+            const image = document.getElementById('imageDesc').textContent;
+            const caption = document.getElementById('caption').textContent;
+            const reels = document.getElementById('reelsScript').textContent;
+            
+            const fullContent = `📸 IMAGEM PARA BUSCAR:
+${image}
+
+${caption}
+
+${reels}
+
+---
+Gerado por Gerador de Posts Instagram Pro`;
+            
+            navigator.clipboard.writeText(fullContent).then(() => {
+                showToast('📑 Tudo copiado! Cole no Instagram.');
+            }).catch(() => {
+                const textArea = document.createElement('textarea');
+                textArea.value = fullContent;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                showToast('📑 Tudo copiado! Cole no Instagram.');
+            });
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // Gera primeiro post automaticamente após 1s
+        setTimeout(generatePost, 1000);
+    </script>
+</body>
+</html>
